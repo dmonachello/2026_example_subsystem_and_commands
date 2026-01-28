@@ -115,6 +115,22 @@ Every command has the same life cycle. The scheduler calls these methods in orde
 
 In `ShooterCommand.java` and `IntakeSparkCommand.java`, we publish counters to SmartDashboard (`InitializeCount`, `ExecuteCount`, `EndCount`) and also show `IsScheduled` and `ActiveSeconds`. That makes the life cycle visible and concrete.
 
+Scheduler hooks (dashboard telemetry):
+
+The example `RobotContainer` registers three scheduler callbacks to record which command most recently changed state:
+
+- `onCommandInitialize`: fires when a command is scheduled.
+- `onCommandFinish`: fires when a command ends normally (`isFinished()` returns true).
+- `onCommandInterrupt`: fires when a command ends because it was interrupted.
+
+Each callback writes the command name to SmartDashboard:
+
+- `Cmd/LastInit`
+- `Cmd/LastFinish`
+- `Cmd/LastInterrupt`
+
+To reduce overhead, the code only publishes when the value changes (it compares to the last name it posted).
+
 ## 4) Default Commands vs Non-Default Commands
 
 Default commands are special commands assigned to subsystems. They automatically run when no other command is using that subsystem. This means the subsystem always has a command controlling it.
