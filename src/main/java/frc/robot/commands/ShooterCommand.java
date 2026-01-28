@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj.Timer;
 
 /** An example command that uses an example subsystem. */
 public class ShooterCommand extends Command {
+  private static final int DASH_UPDATE_PERIOD_LOOPS = 5;
+
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ShooterSubsystem m_subsystem;
   private final DoubleSupplier m_speedSupplier;
@@ -19,6 +21,8 @@ public class ShooterCommand extends Command {
   private int m_initializeCount = 0;
   private int m_endCount = 0;
   private int m_cmdCancelled = 0;
+  private int m_dashLoopCounter = 0;
+  private double m_lastSpeed = Double.NaN;
   private double activeSecondCounter = 0.0;
   private double m_lastActiveSeconds = 0.0;
   private double m_curActiveSeconds = 0.0;
@@ -57,9 +61,15 @@ public class ShooterCommand extends Command {
     double speed = m_speedSupplier.getAsDouble();
     m_subsystem.setShooterSpeed(speed);
     m_executeCount++;
-    SmartDashboard.putNumber("ShooterCommand/ExecuteCount", m_executeCount);
-    SmartDashboard.putNumber("ShooterCommand/LastSpeed", speed);
-    SmartDashboard.putNumber("ShooterCommand/ActiveSeconds", m_activeTimer.get());
+    m_dashLoopCounter++;
+    if (m_dashLoopCounter % DASH_UPDATE_PERIOD_LOOPS == 0) {
+      SmartDashboard.putNumber("ShooterCommand/ExecuteCount", m_executeCount);
+      if (Double.isNaN(m_lastSpeed) || Math.abs(speed - m_lastSpeed) > 0.001) {
+        SmartDashboard.putNumber("ShooterCommand/LastSpeed", speed);
+        m_lastSpeed = speed;
+      }
+      SmartDashboard.putNumber("ShooterCommand/ActiveSeconds", m_activeTimer.get());
+    }
   }
 
 
@@ -75,8 +85,8 @@ public class ShooterCommand extends Command {
 
     if (interrupted) {
       m_cmdCancelled += 1;
-      SmartDashboard.putNumber("ShooterCommand/cmdCancelled", m_cmdCancelled);
     }
+    SmartDashboard.putNumber("ShooterCommand/cmdCancelled", m_cmdCancelled);
   }
 
   // always returns false so the command will end when the bindings force the interrupt parameter to true

@@ -11,12 +11,16 @@ import frc.robot.subsystems.IntakeSparkSubsystem;
 import java.util.function.DoubleSupplier;
 
 public class IntakeSparkCommand extends Command {
+  private static final int DASH_UPDATE_PERIOD_LOOPS = 5;
+
   private final IntakeSparkSubsystem m_subsystem;
   private final DoubleSupplier m_speedSupplier;
   private int m_executeCount = 0;
   private int m_initializeCount = 0;
   private int m_cmdCancelled = 0;
   private int m_endCount = 0;
+  private int m_dashLoopCounter = 0;
+  private double m_lastSpeed = Double.NaN;
   private final Timer m_activeTimer = new Timer();
 
   public IntakeSparkCommand(IntakeSparkSubsystem subsystem, DoubleSupplier speedSupplier) {
@@ -31,9 +35,15 @@ public class IntakeSparkCommand extends Command {
     //System.out.println(speed);
     m_subsystem.setOutput(speed);
     m_executeCount++;
-    SmartDashboard.putNumber("IntakeSparkCommand/ExecuteCount", m_executeCount);
-    SmartDashboard.putNumber("IntakeSparkCommand/LastSpeed", speed);
-    SmartDashboard.putNumber("IntakeSparkCommand/ActiveSeconds", m_activeTimer.get());
+    m_dashLoopCounter++;
+    if (m_dashLoopCounter % DASH_UPDATE_PERIOD_LOOPS == 0) {
+      SmartDashboard.putNumber("IntakeSparkCommand/ExecuteCount", m_executeCount);
+      if (Double.isNaN(m_lastSpeed) || Math.abs(speed - m_lastSpeed) > 0.001) {
+        SmartDashboard.putNumber("IntakeSparkCommand/LastSpeed", speed);
+        m_lastSpeed = speed;
+      }
+      SmartDashboard.putNumber("IntakeSparkCommand/ActiveSeconds", m_activeTimer.get());
+    }
   }
 
   @Override

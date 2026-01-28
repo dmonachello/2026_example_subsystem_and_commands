@@ -13,7 +13,10 @@ import frc.robot.subsystems.IntakeSparkSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -41,6 +44,10 @@ public class RobotContainer {
   private final DoubleSupplier m_shooterSpeedSupplier = new ShooterSpeedSupplier();
   //private final DoubleSupplier m_intakeFalconSpeedSupplier = new IntakeFalconSpeedSupplier();
   private final DoubleSupplier m_intakeSparkSpeedSupplier = new IntakeSparkSpeedSupplier();
+
+  private String m_lastInitName = "";
+  private String m_lastFinishName = "";
+  private String m_lastInterruptName = "";
 
   private class ShooterSpeedSupplier implements DoubleSupplier {
     @Override
@@ -71,6 +78,7 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     System.out.println("Initializing Robot Container");
+    setupSchedulerDashboardHooks();
     // Configure the trigger bindings
     configureBindings();
   }
@@ -115,6 +123,34 @@ public class RobotContainer {
     
         // TBD - add decorator examples for onlyWhile,...
 
+  }
+
+  private void setupSchedulerDashboardHooks() {
+    var sched = CommandScheduler.getInstance();
+
+    sched.onCommandInitialize((Command c) -> {
+      String name = c.getName();
+      if (!name.equals(m_lastInitName)) {
+        m_lastInitName = name;
+        SmartDashboard.putString("Cmd/LastInit", name);
+      }
+    });
+
+    sched.onCommandFinish((Command c) -> {
+      String name = c.getName();
+      if (!name.equals(m_lastFinishName)) {
+        m_lastFinishName = name;
+        SmartDashboard.putString("Cmd/LastFinish", name);
+      }
+    });
+
+    sched.onCommandInterrupt((Command c) -> {
+      String name = c.getName();
+      if (!name.equals(m_lastInterruptName)) {
+        m_lastInterruptName = name;
+        SmartDashboard.putString("Cmd/LastInterrupt", name);
+      }
+    });
   }
 
 }
